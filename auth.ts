@@ -4,12 +4,13 @@ import prisma from "./src/lib/db";
 import { signInSchema } from "./src/lib/definitions";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { authConfig } from "@/config/auth.config";
-import { ZodError } from "zod";
 import bcrypt from "bcryptjs";
+import { ZodError } from "zod";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
+  debug: false,
   providers: [
     Credentials({
       credentials: {
@@ -18,31 +19,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         try {
-          let user = null;
-
           const { username, password } = await signInSchema.parseAsync(
             credentials
           );
 
           //get user from prisma db
-          user = await prisma.user.findFirst({
+          const user = await prisma.user.findFirst({
             where: {
               username: username,
             },
           });
 
-          //compare hashed password and entered password are match using bcrypt
-          const passwordMatch = await bcrypt.compare(user.password, )
-
-
           if (!user) {
-            throw new Error("Invalid credentials");
+            return Promise.reject(new Error("User not found"));
+          }
+
+          //compare hashed password and entered password are match using bcrypt
+          const passwordMatch = await bcrypt.compare(password, user.password);
+
+          if (!passwordMatch) {
+            return Promise.reject(new Error("Invalid credentials."));
           }
           return user;
         } catch (error) {
           if (error instanceof ZodError) {
-            return null;
+            return Promise.reject(new Error("Invalid credentials."));
           }
+          return null;
         }
       },
     }),
