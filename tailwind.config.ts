@@ -10,10 +10,10 @@ import { heroui } from "@heroui/react";
   ],
   theme: {
     extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
+      // colors: {
+      //   background: "var(--background)",
+      //   foreground: "var(--foreground)",
+      // },
     },
   },
   darkMode: "class",

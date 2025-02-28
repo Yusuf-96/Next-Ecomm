@@ -6,11 +6,13 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { authConfig } from "@/config/auth.config";
 import bcrypt from "bcryptjs";
 import { ZodError } from "zod";
+import { getUserById } from "@/dal/user";
+import { getAccountByUserId } from "@/dal/account";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
-  debug: false,
+  debug: true,
   providers: [
     Credentials({
       credentials: {
@@ -50,4 +52,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    
+    jwt: async ({ token }) => {
+      if(!token.sub) return token
+      
+      const existingUser = await getUserById(token.sub)
+
+      if(!existingUser) return token
+
+      const existingAccount = await getAccountByUserId(existingUser.id)
+      
+      token.isOauth = !!existingAccount
+
+      return token;
+    },
+    session: async ({ session, token }) => {
+      console.log('Session token:', session)
+      session.userId = token.sub
+      return session;
+    },
+  },
 });

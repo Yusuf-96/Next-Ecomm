@@ -51,7 +51,7 @@ export default function SignInForm() {
         variant="flat"
         disabled={pending}
         size="md"
-        className="w-full text-center text-sm font-semibold text-orange-50 bg-red-500"
+        className="w-full text-center text-sm font-semibold text-orange-50 bg-red-500 mb-4"
         type="submit"
         isLoading={pending}
       >
